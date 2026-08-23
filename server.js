@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
-const { io } = require('socket.io-client');
+const io = require('socket.io-client'); // v2는 require 결과 자체가 함수
 const path = require('path');
 const crypto = require('crypto');
 
