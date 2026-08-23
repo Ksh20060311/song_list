@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>치지직 !(제목) 리스트</title>
+<style>
+  body { font-family: -apple-system, "Malgun Gothic", sans-serif; max-width: 700px; margin: 40px auto; background:#111; color:#eee; }
+  h1 { font-size: 20px; }
+  #login { padding: 10px 16px; background:#03cf5d; color:#111; border-radius:6px; font-weight:bold; text-decoration:none; display:inline-block; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 10px; border-bottom: 1px solid #333; text-align: left; }
+  th { color: #888; font-size: 13px; }
+  .time { color: #666; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>치지직 채팅 "!(제목)" 리스트</h1>
+  <div id="loginArea"></div>
+  <table id="tbl" style="display:none;">
+    <thead><tr><th>시간</th><th>닉네임</th><th>제목</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+<script>
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function refresh() {
+  const res = await fetch('/api/list');
+  const data = await res.json();
+  const area = document.getElementById('loginArea');
+
+  if (!data.loggedIn) {
+    area.innerHTML = '<a id="login" href="/auth/login">치지직 계정으로 로그인하기</a>';
+    return;
+  }
+  area.innerHTML = '<span style="color:#03cf5d;">✔ 연결됨 (2초마다 자동 갱신)</span>';
+
+  const tbl = document.getElementById('tbl');
+  const tbody = document.getElementById('tbody');
+  tbl.style.display = data.list.length ? 'table' : 'none';
+  tbody.innerHTML = data.list
+    .map(
+      (e) =>
+        `<tr><td class="time">${e.time}</td><td>${escapeHtml(e.nickname)}</td><td>${escapeHtml(e.title)}</td></tr>`
+    )
+    .join('');
+}
+
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

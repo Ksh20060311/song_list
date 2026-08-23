@@ -1,0 +1,14 @@
+{
+  "name": "chzzk-title-list-simple",
+  "version": "1.0.0",
+  "description": "치지직 채팅 !(제목) 리스트 - 단순 버전",
+  "main": "server.js",
+  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "socket.io-client": "^2.5.0"
+  }
+}
