@@ -15,10 +15,8 @@
 </style>
 </head>
 <body>
-  <h1>치지직 채팅 "!(제목)" 리스트</h1>
   <div id="loginArea"></div>
   <table id="tbl" style="display:none;">
-    <thead><tr><th>시간</th><th>닉네임</th><th>제목</th></tr></thead>
     <tbody id="tbody"></tbody>
   </table>
 
@@ -33,20 +31,21 @@ async function refresh() {
   const res = await fetch('/api/list');
   const data = await res.json();
   const area = document.getElementById('loginArea');
+  const tbl = document.getElementById('tbl');
+  const tbody = document.getElementById('tbody');
 
   if (!data.loggedIn) {
     area.innerHTML = '<a id="login" href="/auth/login">치지직 계정으로 로그인하기</a>';
+    tbl.style.display = 'none';
     return;
   }
-  area.innerHTML = '<span style="color:#03cf5d;">✔ 연결됨 (2초마다 자동 갱신)</span>';
+  area.innerHTML = '';
 
-  const tbl = document.getElementById('tbl');
-  const tbody = document.getElementById('tbody');
   tbl.style.display = data.list.length ? 'table' : 'none';
   tbody.innerHTML = data.list
     .map(
       (e) =>
-        `<tr><td class="time">${e.time}</td><td>${escapeHtml(e.nickname)}</td><td>${escapeHtml(e.title)}</td></tr>`
+        `<tr><td>${escapeHtml(e.nickname)}</td><td>${escapeHtml(e.title)}</td></tr>`
     )
     .join('');
 }
