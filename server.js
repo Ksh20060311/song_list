@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
-const io = require('socket.io-client'); // v2는 require 결과 자체가 함수
+const io = require('socket.io-client'); // v2는 require 결과 자체가 함수임
 const path = require('path');
 const crypto = require('crypto');
 
@@ -79,7 +79,7 @@ async function startChat() {
     const content = (msg.content || '').trim();
     const match = content.match(TITLE_PATTERN);
     if (match) {
-      list.unshift({
+      list.push({
         nickname: msg.profile?.nickname || '알 수 없음',
         title: match[1].trim(),
         time: new Date().toLocaleTimeString('ko-KR'),
@@ -90,6 +90,12 @@ async function startChat() {
 
 // 5) 화면이 2초마다 이 API를 호출해서 목록을 가져감
 app.get('/api/list', (req, res) => {
+  res.json({ loggedIn: !!accessToken, list });
+});
+
+// 6) 맨 위(가장 오래된) 곡 하나 제거 - 키보드 버튼에서 호출
+app.post('/api/next', (req, res) => {
+  list.shift();
   res.json({ loggedIn: !!accessToken, list });
 });
 
