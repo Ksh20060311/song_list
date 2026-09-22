@@ -27,27 +27,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 //    문제 해결 후에는 이 라우트를 지워도 됩니다.
 app.get('/debug/net', async (req, res) => {
   const results = {};
+  const TIMEOUT = 15000; // OS 레벨 ETIMEDOUT까지 볼 수 있도록 넉넉하게
 
-  // (a) 일반 네이버 페이지 접속 테스트 (openapi 서브도메인이 아닌 곳)
-  try {
+  const test = async (key, url, opts = {}) => {
     const start = Date.now();
-    await axios.get('https://chzzk.naver.com', { timeout: 8000 });
-    results.chzzk_naver_com = `OK (${Date.now() - start}ms)`;
-  } catch (e) {
-    results.chzzk_naver_com = `FAIL: ${e.code || e.message}`;
-  }
+    try {
+      await axios.get(url, { timeout: TIMEOUT, ...opts });
+      results[key] = `OK (${Date.now() - start}ms)`;
+    } catch (e) {
+      results[key] = `FAIL after ${Date.now() - start}ms: ${e.code || e.message}`;
+    }
+  };
 
-  // (b) 오픈API 서브도메인 접속 테스트 (실제 실패 지점)
-  try {
-    const start = Date.now();
-    await axios.get(`${OPEN_API}/open/v1/categories/search?query=a`, {
-      timeout: 8000,
-      headers: { 'Client-Id': CLIENT_ID, 'Client-Secret': CLIENT_SECRET },
-    });
-    results.openapi_chzzk_naver_com = `OK (${Date.now() - start}ms)`;
-  } catch (e) {
-    results.openapi_chzzk_naver_com = `FAIL: ${e.code || e.message}`;
-  }
+  // (a) 대조군: 네이버/한국과 무관한 일반 인터넷 접속이 되는지
+  await test('control_google', 'https://www.google.com');
+
+  // (b) 대조군: 다른 한국 대형 사이트 (네이버만 막힌 건지, 한국 전체가 막힌 건지 구분)
+  await test('control_daum', 'https://www.daum.net');
+
+  // (c) 네이버 메인 페이지 (치지직/오픈API와 무관한 순수 네이버 도메인)
+  await test('naver_com', 'https://www.naver.com');
+
+  // (d) 치지직 일반 페이지
+  await test('chzzk_naver_com', 'https://chzzk.naver.com');
+
+  // (e) 오픈API 서브도메인 (실제 로그인 실패 지점)
+  await test('openapi_chzzk_naver_com', `${OPEN_API}/open/v1/categories/search?query=a`, {
+    headers: { 'Client-Id': CLIENT_ID, 'Client-Secret': CLIENT_SECRET },
+  });
 
   res.json(results);
 });
