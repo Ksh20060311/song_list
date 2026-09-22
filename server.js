@@ -23,6 +23,35 @@ const list = []; // { nickname, title, time } - 최신순으로 앞에 쌓임
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 0) [임시 진단용] Render -> 네이버 오픈API 네트워크 연결 확인용
+//    문제 해결 후에는 이 라우트를 지워도 됩니다.
+app.get('/debug/net', async (req, res) => {
+  const results = {};
+
+  // (a) 일반 네이버 페이지 접속 테스트 (openapi 서브도메인이 아닌 곳)
+  try {
+    const start = Date.now();
+    await axios.get('https://chzzk.naver.com', { timeout: 8000 });
+    results.chzzk_naver_com = `OK (${Date.now() - start}ms)`;
+  } catch (e) {
+    results.chzzk_naver_com = `FAIL: ${e.code || e.message}`;
+  }
+
+  // (b) 오픈API 서브도메인 접속 테스트 (실제 실패 지점)
+  try {
+    const start = Date.now();
+    await axios.get(`${OPEN_API}/open/v1/categories/search?query=a`, {
+      timeout: 8000,
+      headers: { 'Client-Id': CLIENT_ID, 'Client-Secret': CLIENT_SECRET },
+    });
+    results.openapi_chzzk_naver_com = `OK (${Date.now() - start}ms)`;
+  } catch (e) {
+    results.openapi_chzzk_naver_com = `FAIL: ${e.code || e.message}`;
+  }
+
+  res.json(results);
+});
+
 // 1) 로그인 시작
 app.get('/auth/login', (req, res) => {
   const state = crypto.randomBytes(8).toString('hex');
