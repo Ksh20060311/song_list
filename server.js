@@ -35,7 +35,8 @@ app.get('/debug/net', async (req, res) => {
       await axios.get(url, { timeout: TIMEOUT, ...opts });
       results[key] = `OK (${Date.now() - start}ms)`;
     } catch (e) {
-      results[key] = `FAIL after ${Date.now() - start}ms: ${e.code || e.message}`;
+      const status = e.response ? `HTTP ${e.response.status} ${e.response.statusText || ''}`.trim() : null;
+      results[key] = `FAIL after ${Date.now() - start}ms: ${status || e.code || e.message}`;
     }
   };
 
